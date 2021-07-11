@@ -2,7 +2,6 @@ from flask import Flask, request
 from flask_ask import Ask, question, session
 from flask_ask.models import statement
 from ssml_builder.core import Speech
-import pymongo
 import json
 import google_actions as actions
 import alexa_skills as alexa
@@ -11,8 +10,6 @@ import api_call_functions as api
 app = Flask(__name__)
 ask = Ask(app,'/learning_matters')
 
-dbClient = pymongo.MongoClient("mongodb+srv://Narmadha:Secure321@cluster0.s40ur.mongodb.net/learningMatters?retryWrites=true&w=majority")
-db=dbClient['learningmatters']
 
 @app.route('/',methods=['GET','POST'])
 def func():
@@ -77,23 +74,13 @@ def self_intro(nam):
 
 @ask.intent("StudyIntent",mapping={'type':'TYPE','sub':'SUBJECT',"lesson":"LESSON","lesson_name":"LESSON_NAME"})
 def study_intent(type,sub,lesson,lesson_name):
-    return question(alexa.studyContent(type,sub,lesson,lesson_name,db))
+    return question(alexa.studyContent(type,sub,lesson,lesson_name))
     
 
 @ask.intent("SayAllLessonsInSubject",mapping={'sub':"SUBJECT_","lesson":"LESSON_"})
 def get_contents(sub,lesson):
     speech = Speech()
-    col=db["{}".format(sub.lower())]
-    if col.count_documents({"type":"{}".format(lesson.lower())},limit = 1)!=0:
-        topics = col.find({"type":"{}".format(lesson.lower())})
-        topics_list=''
-        for x in topics:
-            topics_list=topics_list+'{}, '.format(x['name'])
-        print(topics_list)
-        speech.add_text("The topics available in {} lesson in {} subject are... : ".format(lesson,sub))
-        speech.add_text("{}".format(topics_list))
-    else:
-        speech.add_text("There are no topics in the lesson {} in {} subject".format(lesson,sub))
+    speech.add_text("There are no topics in the lesson {} in {} subject".format(lesson,sub))
     return question(speech.speak())
 
 @ask.intent("AMAZON.CancelIntent")
