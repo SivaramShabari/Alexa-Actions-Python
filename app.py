@@ -10,15 +10,9 @@ import api_call_functions as api
 app = Flask(__name__)
 ask = Ask(app,'/learning_matters')
 
-
-@app.route('/',methods=['GET','POST'])
-def func():
+@app.route('/')
+def main():
     return {"hello":"world. Welcome to home page"}
-
-@app.route('/new',methods=['GET','POST'])
-def func():
-    return {"hello":"world"}
-
 
 @ask.on_session_started
 def new_session():
