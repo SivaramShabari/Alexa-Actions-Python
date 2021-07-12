@@ -1,3 +1,8 @@
+import api_calls
+
+def xix(d):
+    print(d)
+
 def prompt(request,speech):
     return {
         "session": {
@@ -18,17 +23,52 @@ def prompt(request,speech):
     }
 
 
-def slotHandler(request):
-    slots=request.json["scene"]["slots"]
-    if slots["lesson"]["updated"]:
-        msg = "Ok..."
+def learnLessonSlotHandler(request):
+
+    params=request.json["session"]["params"]
+    slots= request.json["scene"]["slots"]
+    param={}
+    slot={}
+    msg=''
+    if len(params)==0:
+
+        if api_calls.isSlotValid("subject",slots['subject']['value'],0,0):
+            msg = "Ok in {},".format(slots["subject"]["value"])
+            param=params
+            param["subject"]=slots['subject'].get('value')
+        else:
+            slot["subject"]={"status":"INVALID"}
+            msg = "Sorry, that subject is not in the syllabus."
+
+    elif len(params)==1:
+
+        if api_calls.isSlotValid("lesson",slots['lesson']['value'],slots['subject']['value'],0):
+            msg = "Ok in {},".format(slots["lesson"]["value"])
+            param=params
+            param["lesson"]=slots['lesson'].get('value')
+        else:
+            slot["lesson"]={"status":"INVALID"}
+            msg = "Sorry, that lesson is not in the syllabus."
+
+
     else:
-        msg = "Ok in {},".format(slots["subject"]["value"])
+        if api_calls.isSlotValid("lesson",slots['lesson_number']['value'],slots['subject']['value'],slots['lesson']['value']):
+            msg = "Ok...".format(slots["lesson"].get("value"))
+            param=params
+            param["lesson_number"]=slots['lesson_number']['value']
+        else:
+            slots["lesson_number"]={"status":"INVALID"}
+            num = api_calls.getNumberOfLessons(slots['subject']['value'],slots['lesson']['value'])
+            msg = "Sorry, only {} number of lessons are available.".format(num)
+
+
     response = prompt(request, msg)
-    if request.json["scene"]["slotFillingStatus"]=="FINAL" or slots["lesson"]["updated"]:
-        response["session"]["params"]["subject"]=request.json["scene"]["slots"]["subject"]["value"]
-        response["session"]["params"]["lesson "]=request.json["scene"]["slots"]["lesson "]["value"]
+    response['session']['params']=param
+    print("Slots  :")
+    print(slots)
+    response['scene']['slots']=slots
     return response
+
 
 def speakAndEndConversation(request,speech):
     return {

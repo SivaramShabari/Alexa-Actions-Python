@@ -1,44 +1,76 @@
-import pyrebase 
-
-firebaseConfig = {
-    "apiKey": "AIzaSyA2YsnCNc9cAFOsIL7qNweRF7gMzRugCWo",
-    "authDomain": "learningmattersprotosem.firebaseapp.com",
-    "databaseURL": "https://learningmattersprotosem-default-rtdb.firebaseio.com",
-    "projectId": "learningmattersprotosem",
-    "storageBucket": "learningmattersprotosem.appspot.com",
-    "messagingSenderId": "585768616134",
-    "appId": "1:585768616134:web:4b345a33b968ad225dd7c7"
-  }
-
-firebase = pyrebase.initialize_app(firebaseConfig)
+from firbase import firebase
 
 db = firebase.database()
-data = {"name": "Mortimer 'Morty' Smith"}
-db.child("users").child("Morty").set(data)
 
-def getLessonsBySubject():
-    return "lessons"
+def getLessonsBySubject(subject):
+    lessons = []
+    data = db.child("subjects").child(subject).shallow().get()
+    if data.val()!=None:
+        for x in data.val():
+            lessons.append(x)
+    return lessons
 
 def getAllSubjects():
-    return "Subjetcs"
+    subjects = []
+    data = db.child("subjects").shallow().get()
+    if data.val()!=None:
+        for x in data.val():
+            subjects.append(x)
+    return subjects
 
 def introSpeech():
-    return 'Welcome to learning matters. I can teach you many things!! Say teach me something to get started...'
+    data = db.child('prompts').child('mainIntro').get().val()
+    return data
 
 def getTestContent():
     return "test content"
 
 def teachContentSpeech():
-    return "Ok, let us learn something today!!"
+    data = db.child('prompts').child('teachContentSpeech').get().val()
+    return data
 
-def getTopicContent(subject,lesson):
-    speech = "Awesome! You've chosen to learn lesson {} from {} subject! Let's get started! ".format(lesson,subject)
-    content = "Users are limited to a rolling window of 75 requests to Heroku Git repos per hour, per app, per user. The uncompressed size of a checkout of HEAD from the repo, combined with the size of restored submodules, cannot exceed 1 GB. "
-    extra = "If you wan't me to repeat the content, please say \"repeat it again\". If you have learnt the lesson then great!, say quit to exit. "
-    return speech+content+extra
+def getNumberOfLessons(subject,lesson):
+    contents = []
+    data = db.child("subjects").child(subject).child(lesson).get()
+    if data.val()!=None:
+        for x in data.val():
+            contents.append(x)
+    return len(contents)
 
-def getTopicContent(subject,lesson):
-    speech = "Ok! I will repeat it again... ".format(lesson,subject)
-    content = "\nUsers are limited to a rolling window of 75 requests to Heroku Git repos per hour, per app, per user. The uncompressed size of a checkout of HEAD from the repo, combined with the size of restored submodules, cannot exceed 1 GB. "
-    extra = "If you wan't me to repeat the content, please say \"repeat it again\". If you have learnt the lesson then great!, say quit to exit. "
-    return speech+content+extra
+def getTopicContent(subject,lesson,lesson_number):
+    contents = []
+    data = db.child("subjects").child(subject).child(lesson).get()
+    if data.val()!=None:
+        for x in data.val():
+            contents.append(x)
+    return contents[lesson_number]['content']
+
+def getTopicContentRepeat(subject,lesson,lesson_number):
+    contents = []
+    data = db.child("subjects").child(subject).child(lesson).get()
+    if data.val()!=None:
+        for x in data.val():
+            contents.append(x)
+    return contents[lesson_number]['content']
+
+
+def isSlotValid(slot,value,sub,lesson):
+    if slot =='subject':
+        data = getAllSubjects()
+        if value in data:
+            return True
+        else:
+            return False
+    elif slot=='lesson':
+        data = getLessonsBySubject(sub)
+        if value in data:
+            return True
+        else:
+            return False
+    elif slot=='lesson_number':
+        data = getNumberOfLessons(sub,lesson)
+        if value<=data:
+            return True
+        else:
+            return False
+

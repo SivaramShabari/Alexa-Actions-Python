@@ -9,8 +9,9 @@ alexa_app = Blueprint('alexa_app',__name__)
 
 ask = Ask(alexa_app,'/')
 
-@alexa_app.route('/')
+@alexa_app.route('/',methods=['GET'])
 def main():
+    print(request)
     return {"response":"Alexa endpoint","req":request.json}
 
 @ask.on_session_started
@@ -22,9 +23,9 @@ def func():
     session.modified = True
 
 
-
 @ask.launch
 def start_skill():
+    print("Launched")
     welcome_message = api.introSpeech()
     set_session_attributes('intent','launch')
     return question(welcome_message)
@@ -84,8 +85,6 @@ def fallback():
 @ask.session_ended
 def session_ended():
     return"{}", 200
-
-
 
 
 def set_session_attributes(name,value):
