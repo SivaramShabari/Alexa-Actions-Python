@@ -1,5 +1,4 @@
 from flask import Flask, request
-import json
 import google_actions as actions
 from flask_ask import Ask, question, session
 import api_calls as api
@@ -9,7 +8,6 @@ import alexa_fuctions as functions
 
 
 app = Flask(__name__)
-
 
 ask = Ask(app,'/alexa')
 
@@ -25,7 +23,6 @@ def new_session():
 @app.before_request
 def func():
     session.modified = True
-
 
 @ask.launch
 def start_skill():

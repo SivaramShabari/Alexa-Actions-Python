@@ -1,8 +1,5 @@
 import api_calls
 
-def xix(d):
-    print(d)
-
 def prompt(request,speech):
     return {
         "session": {
